@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<link rel="stylesheet" href="css/bootstrap.min.css">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Waves Platform Maze Game .::. with Data Transaction</title>
+	<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+	<script src="js/bootstrap.min.js"></script>  
+
+</head>
+
+<body>
+
+	<nav class="navbar navbar-dark bg-primary" id="menuBar" >
+		<a class="navbar-brand" href="#">Blockchain Maze Game</a>
+		  <span class="navbar-text">
+		    Choose level ->
+		  </span>
+
+	</nav>
+
+	<div class="container">
+
+		<div class="col-sm-12">
+
+		<div id="gameField" class="text-monospace">
+
+		</div>
+
+		<p>
+			<button type="button" class="btn btn-outline-primary btn-sm" disabled>Q</button>
+			<button type="button" class="btn btn-outline-primary btn-sm" onclick="movePlayer(0, -1)">W</button>
+			<button type="button" class="btn btn-outline-primary btn-sm" disabled>E</button>
+		</p>
+		<p>
+			<button type="button" class="btn btn-outline-primary btn-sm" onclick="movePlayer(-1, 0)">A</button>
+			<button type="button" class="btn btn-outline-primary btn-sm" onclick="movePlayer(0, 1)">S</button>
+			<button type="button" class="btn btn-outline-primary btn-sm" onclick="movePlayer(1, 0)">D</button>
+		</p>
+
+		</div>
+
+	</div>
+
+	<script>
+
+
+	// START - Global vars
+	var items = [];
+	var pX = -1;
+	var pY = -1;
+	var arrField = [];
+	var clearField = [];
+	// END - Global vars
+
+	// START - Page load
+	(function (){
+		var url = "https://testnode1.wavesnodes.com/addresses/data/3MuEiWTpDEtDFvxYKXMbFayzfuZf96kHBJG";
+
+		$.getJSON(url).done(function(data){
+
+			menu = "";
+			realId = 0;
+			for(i = 0; i < data.length; i++) {
+
+				curEl = data[i];
+				if(curEl.key.includes("level")){
+					items.push([curEl.key, curEl.value]);					
+					menu = menu + '<a class="nav-link" onclick="getLevel(' + realId + ')">' + curEl.key + '</a>';	
+					realId = realId + 1;
+
+				}
+
+			}
+
+			$("#menuBar").append(menu);
+
+		});
+
+
+
+	})();
+	// END - Page load
+
+	// START - Other functions
+	function getLevel(itemId) {
+
+		arrField = [];
+		clearField = [];
+
+		level = items[itemId][1];
+		fieldWidth = Math.sqrt(level.length);	
+
+		field = ""; count = 0; rowCount = 0; rowArray = []; rowClear = [];
+
+		for(i = 0; i < level.length; i++) {
+
+			count = count + 1;
+			field = field + level.charAt(i);
+
+			rowArray.push(level.charAt(i));
+			rowClear.push(level.charAt(i));
+
+			if(level.charAt(i) == "@") {
+				pX = count - 1;
+				pY = rowCount;
+			}
+
+			if(count == fieldWidth) {
+				count = 0;
+				field = field + '<br/>';
+				rowCount = rowCount + 1;
+				arrField.push(rowArray);
+				idPlayer = rowClear.indexOf("@");
+				if(idPlayer != -1) {
+					rowClear[idPlayer] = ".";
+				}
+				clearField.push(rowClear);
+				rowArray = [];
+				rowClear = [];
+
+			}
+		}
+		
+		$("#gameField").html(field);
+
+	}	
+
+	function movePlayer(x, y) {
+
+		if(!canMove(x, y)){
+			return;
+		}
+
+		value = clearField[pY][pX];
+
+		arrField[pY + y][pX + x] = "@";
+		arrField[pY][pX] = value;
+
+		pY = pY + y;
+		pX = pX + x;
+
+		drawField();
+		checkPosition();
+
+	}
+
+	function canMove(x, y) {
+
+		if(arrField[pY + y][pX + x] == "#") {
+			return false;
+		} else {
+			return true;
+		}
+
+	}
+
+	function drawField() {
+
+		field = "";
+		for(j = 0; j < arrField.length; j++) {
+
+			for(i = 0; i < arrField[j].length; i++) {
+				field = field + arrField[j][i];
+			}
+			field = field + '<br/>';
+
+		}
+
+		$("#gameField").html(field);
+
+	}
+
+	function checkPosition() {
+
+		if(clearField[pY][pX] == "X") {
+			alert('You find X!');
+		}
+
+	}
+	// END - Other functions
+
+	</script>
+</body>
+</html>
